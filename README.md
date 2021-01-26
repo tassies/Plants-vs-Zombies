@@ -1,2 +1,1151 @@
 # Plants-vs-Zombies
 the game involves a home owner trying to stop zombies from eating his children and other items in his household
+
+
+
+public abstract class AShooter extends Actor 
+{
+	public AShooter(int x, int y) {
+		// TODO Auto-generated constructor stub
+		super(x, y);
+	}
+	public AShooter() {		
+	}
+	public abstract boolean shoot();
+}
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.net.URL;
+
+public class Bullet extends Actor
+{	
+	public boolean ShouldRemoved = false;
+	public Bullet(int x, int y){
+		super(x, y);	
+	}
+	private Image image = null;
+	@Override
+	public Image getImage(String path){
+		Image tempImage = null;
+		try{
+			URL imageURL = Bullet.class.getResource(path);
+			tempImage = Toolkit.getDefaultToolkit().getImage(imageURL);		
+		}
+		catch(Exception e){
+			System.out.println("an errr occured " + e.getMessage());
+		}
+		return tempImage;
+	}
+	@Override
+	public void draw(Graphics g) {
+		if(image == null)
+			image = getImage("bullet.png");
+		Graphics2D g2 = (Graphics2D)g;
+		g2.drawImage(image, getX(), getY(), 60, 60, this);
+		g2.setColor(Color.cyan);
+		this.boundingBox.setBounds(this.getX(), this.getY(), 60, 60);
+	    g2.drawRect(this.boundingBox.x, this.boundingBox.y, this.boundingBox.width, this.boundingBox.height);
+		move();
+		repaint();
+	}
+	@Override
+	public void move() {		
+		this.x += 4;
+	}
+}
+import java.awt.*;
+import java.net.URL;
+public class Door extends Actor 
+{
+	private String path;
+	private String name;
+	public Door(int x, int y) {
+		super(x, y);
+		path = "door.png";
+		name = "door";
+	}
+	private Image door = null;
+	@Override
+	public Image getImage(String path){
+		Image tempImage = null;
+		try{
+			URL imageURL = Door.class.getResource(path);
+			tempImage = Toolkit.getDefaultToolkit().getImage(imageURL);		
+		}
+		catch(Exception e){
+			System.out.println("an errr occured " + e.getMessage());
+		}
+		return tempImage;
+	}
+	@Override
+	public void draw(Graphics g) {
+		if(door == null)
+			door = getImage("door.png");
+		Graphics2D g2 = (Graphics2D)g;
+		g2.drawImage(door, getX(), getY(), 100, 100, this);		
+	}
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path) {
+		this.path = path;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	@Override
+	public void move() {
+		// TODO Auto-generated method stub
+	}
+}
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.net.URL;
+import java.util.Random;
+
+public class DragonPlant extends AShooter
+{
+	private String path;
+	private String name;
+	public DragonPlant(){
+		Random r = new Random();
+		this.x = r.nextInt(1200);
+		this.y = 0;	
+		path = "dragonPlant.png";
+		name = "dragonPlant";
+		live = 4;
+	}
+	public DragonPlant(int x, int y) {
+		super(x, y);
+		name = "dragonPlant";
+		path = "dragonPlant.png";
+		live = 4;
+	}
+	private Image dragon = null;
+	@Override
+	public Image getImage(String path){
+		Image tempImage = null;
+		try{
+			URL imageURL = DragonPlant.class.getResource(path);
+			tempImage = Toolkit.getDefaultToolkit().getImage(imageURL);		
+		}
+		catch(Exception e){
+			System.out.println("an errr occured " + e.getMessage());
+		}
+		return tempImage;
+	}
+	@Override
+	public void draw(Graphics g) {
+		if(dragon == null)
+			dragon = getImage("dragon.png");
+		Graphics2D g2 = (Graphics2D)g;
+		g2.drawImage(dragon, getX(), getY(), 100, 100, this);	
+		g2.setColor(Color.cyan);
+		this.boundingBox.setBounds(this.getX(), this.getY(), 100, 100);
+	    g2.drawRect(this.boundingBox.x, this.boundingBox.y, this.boundingBox.width, this.boundingBox.height);
+		move();
+		repaint();
+	}
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path) {
+		this.path = path;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	@Override
+	public void move() {
+		if(this.pause == false){
+			this.y +=1;
+			if(this.y >= 700){
+				this.live = 0;
+			}
+		}
+	}
+	@Override
+	public boolean shoot() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+}
+import java.io.*;
+import java.util.*;
+
+public class FileReader 
+{
+	private int rows ,cols;
+	private Actor[][] world = null;
+	public Actor[][] readLand(String p){
+		String path = p + ".txt";
+		try {            
+			File opFile = new File(path);
+			Scanner sc = new Scanner(opFile);
+			StringTokenizer header = new StringTokenizer(sc.nextLine());
+			rows = Integer.parseInt(header.nextToken());
+			cols = Integer.parseInt(header.nextToken());
+			world = new Actor[rows][cols];
+			for (int i = 0; i < world.length; i++){
+				String lineStr = sc.nextLine();
+				StringTokenizer line = new StringTokenizer(lineStr);
+				for (int j = 0; j < world[0].length ; j++){
+					int id = Integer.parseInt(line.nextToken());
+					if(id ==  0){
+						world[i][j] = new Grass(i*100,j*100);
+					}
+				}	
+				System.out.println();
+			}
+			sc.close(); // close file
+		} 
+		catch (FileNotFoundException ex) {
+			System.out.println("file errr occured " + ex.getMessage());
+		}
+		return world;
+	}
+	public int getCols() {
+		return cols;
+	}
+	/**
+	 * @return
+	 */
+	public int getRows() {
+		return rows;
+	}
+	/**
+	 * @return
+	 */
+	public Actor[][] getworld() {
+		return world;
+	}
+	/**
+	 * @param level
+	 */
+	public void setworld(Actor[][] world){
+		this.world = world;
+	}
+}
+import java.awt.*;
+import java.net.URL;
+import java.util.Random;
+
+public class Flower extends AShooter{
+	private String path;
+	private String name;	
+	public Flower(){
+		Random r = new Random();
+		this.x = r.nextInt(1200);
+		this.y = 0;
+		path = "potato.png";
+		name = "potato";
+		live = 4;
+	}
+	public Flower(int x, int y) {
+		super(x, y);
+		path = "flower.png";
+		name = "flower";
+		live = 4;
+	}
+	private Image flower = null;
+	@Override
+	public Image getImage(String path){
+		Image tempImage = null;
+		try{
+			URL imageURL = Flower.class.getResource(path);
+			tempImage = Toolkit.getDefaultToolkit().getImage(imageURL);		
+		}
+		catch(Exception e){
+			System.out.println("plant2 errr occured " + e.getMessage());
+		}
+		return tempImage;
+	}
+	@Override
+	public void draw(Graphics g) {
+		if(flower == null)
+			flower = getImage("flower.png");
+		Graphics2D g2 = (Graphics2D)g;
+		g2.drawImage(flower, getX(), getY(), 100, 100, this);		
+		g2.setColor(Color.cyan);
+		this.boundingBox.setBounds(this.getX(), this.getY(), 100, 100);
+	    g2.drawRect(this.boundingBox.x, this.boundingBox.y, this.boundingBox.width, this.boundingBox.height);
+	    move();
+	    repaint();
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path) {
+		this.path = path;
+	}
+	@Override
+	public void move() {
+		if(this.pause == false){
+			this.y += 1;
+			if(this.y >= 700){
+				this.live = 0;
+			}
+		}
+	}
+	@Override
+	public boolean shoot() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+}
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.geom.Point2D;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Random;
+
+import javax.swing.*;
+
+public class GamePanel extends JPanel implements Runnable
+{	
+	private FileReader fileLoad;
+	private Actor[][] world;
+	//create a thread to run our game 
+	private Thread thread;
+	private boolean running = false;
+	protected int x;
+	protected int y;
+	protected int velocityX;
+	protected int velocityY;
+	public Image flower = null;
+	public int xCord;
+	public int yCord;
+	private ArrayList<ShootingPlant> shootingPlants = new ArrayList<ShootingPlant>();
+	private ArrayList<DragonPlant> dragonPlants = new ArrayList<DragonPlant>();
+	private ArrayList<PotatoRock> potatoRocks = new ArrayList<PotatoRock>();
+	private ArrayList<ShootingPlantsDummy> shootingPlantDummies = new ArrayList<ShootingPlantsDummy>();
+	private ArrayList<Flower> flowers = new ArrayList<Flower>();
+	private ArrayList<Zombies> zombies = new ArrayList<Zombies>();
+	private double score = 0.0;
+	boolean isGameOver = false;	
+	public GamePanel(String path)	{
+		this.setFocusable(true);
+		fileLoad = new FileReader();
+		world = fileLoad.readLand(path);
+		dragonPlants.add(new DragonPlant());
+		potatoRocks.add(new PotatoRock());
+		flowers.add(new Flower());
+		shootingPlantDummies.add(new ShootingPlantsDummy());		
+		addMouseListener(new MouseListener(){
+			@Override
+			public void mouseClicked(MouseEvent e){				
+				//System.out.println(e.getXOnScreen() + "," + e.getYOnScreen());
+				if(e.getButton() == MouseEvent.BUTTON3){
+					Point coordinateClicked = new Point(e.getX(), e.getY());
+					for(int i = 0; i < shootingPlantDummies.size(); i++){
+						if(shootingPlantDummies.get(i).pause == true){
+							for (int j = 0; j < world.length; j++){
+								for (int k = 0; k < world[0].length; k++){
+									if(world[j][k].boundingBox.contains(coordinateClicked)){
+										ShootingPlant p = new ShootingPlant();
+										p.setX(world[j][k].getX());
+										p.setY(world[j][k].getY());
+										shootingPlants.add(p);
+										shootingPlantDummies.remove(i);
+									}
+								}
+							}
+						}
+					}
+					for(int i = 0; i < potatoRocks.size(); i++){
+						if(potatoRocks.get(i).pause == true && potatoRocks.get(i).hasBeenMoved == false){
+							for (int j = 0; j < world.length; j++){
+								for (int k = 0; k < world[0].length; k++){
+									if(world[j][k].boundingBox.contains(coordinateClicked)){								
+										potatoRocks.get(i).setX(world[j][k].getX());
+										potatoRocks.get(i).setY(world[j][k].getY());
+										potatoRocks.get(i).hasBeenMoved = true;
+									}
+								}
+							}
+						}
+					}	
+				}
+			}
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+				// TODO Auto-generated method stub					
+			}
+			@Override
+			public void mouseExited(MouseEvent arg0) {
+				// TODO Auto-generated method stub			
+			}
+			@Override
+			public void mousePressed(MouseEvent e) {
+				//System.out.println(arg0.getXOnScreen());
+				if(e.getButton() == MouseEvent.BUTTON1){
+					Point coordinateClicked = new Point(e.getX(), e.getY());
+					for(int i = 0; i < shootingPlantDummies.size(); i++){
+						if(shootingPlantDummies.get(i).getBoundingBox().contains(coordinateClicked)){
+							shootingPlantDummies.get(i).pause = true;
+						}
+					}
+					for(int i = 0; i < potatoRocks.size(); i++){
+						if(potatoRocks.get(i).getBoundingBox().contains(coordinateClicked)){
+							potatoRocks.get(i).pause = true;
+						}
+					}
+					for(int i = 0; i < dragonPlants.size(); i++){
+						if(dragonPlants.get(i).getBoundingBox().contains(coordinateClicked)){
+							dragonPlants.get(i).pause = true;
+						}
+					}
+				}
+			}
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+			}
+		});
+	}
+	public void mouseEvents(Image s){
+		flower = s;
+		addMouseMotionListener(new MouseMotionListener(){
+			@Override
+			public void mouseDragged(MouseEvent e){
+				xCord = e.getX();
+				yCord = e.getY();
+				//System.out.println(e.getXOnScreen() + "," + e.getYOnScreen());
+				//System.out.println("drag");
+			}
+			@Override
+			public void mouseMoved(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+			}
+		});
+	}
+	public void makeItRainPlants()
+	{
+		Random r = new Random();
+		int dice = r.nextInt(500);	
+		if(dice == 8)
+			this.potatoRocks.add(new PotatoRock());
+		 if(dice == 7)
+			this.shootingPlantDummies.add(new ShootingPlantsDummy());
+		 if(dice == 6)
+			this.flowers.add(new Flower());
+	}
+	public void initializeZombies(int numRows){
+		for(int i = 0; i < numRows; i++){
+			for(int j=0; j < 10; j++){
+				Zombies z = new Zombies(i, 13);
+				z.totalNumMovesToMove = new Random().nextInt(200) + 100;
+				z.setStartDelay(new Random().nextInt(300) + 100);
+				zombies.add(z);
+			}
+		}
+	}
+	private void placeRandomZombies(){
+		Random rand = new Random();
+		int x = (int)score * 5;
+		if(rand.nextInt(x + 200) == 10){
+			int r = new Random().nextInt(this.world.length);
+			Zombies z = new Zombies(r, 13);
+			z.setStartDelay(0);
+			this.zombies.add(z);
+		}
+	}	
+	public void checkForCollusionsInTheWorld(){
+		//check if bullet hits a zombie 
+		for(int i = 0; i < this.shootingPlants.size(); i++){
+			for(int j=0; j < this.shootingPlants.get(i).bullets.size(); j++){
+				for(int k = 0; k < this.zombies.size(); k++){
+					if(this.zombies.get(k).checkCollusion(this.shootingPlants.get(i).bullets.get(j).boundingBox)){
+						this.shootingPlants.get(i).bullets.get(j).ShouldRemoved  = true;
+						this.score++;
+						zombies.get(k).live -= 0.1;
+					}
+				}
+			}
+		}
+		//reduce score when the zombies get outside the screen
+		for(int i =0; i < this.zombies.size(); i++){
+			if(this.zombies.get(i).getY() < 0){
+				this.score--;
+			}
+		}
+		for(int i = 0; i < this.shootingPlants.size(); i++)
+		{
+			for(int j=0; j < this.shootingPlants.get(i).bullets.size(); j++){
+				if(this.shootingPlants.get(i).bullets.get(j).ShouldRemoved == true)
+					this.shootingPlants.get(i).bullets.remove(j);
+			}
+		}
+		for(int k = 0; k < this.zombies.size(); k++){
+			if(this.zombies.get(k).live <= 0)
+				this.zombies.remove(k);
+		}
+		for(int k = 0; k < this.potatoRocks.size(); k++){
+			if(this.potatoRocks.get(k).live <= 0)
+				this.potatoRocks.remove(k);
+		}	
+	}
+	public static Image getImage(String path){
+		Image tempImage = null;
+		try{
+			URL imageURL = Grass.class.getResource(path);
+			tempImage = Toolkit.getDefaultToolkit().getImage(imageURL);		
+		}
+		catch(Exception e){
+			System.out.println("an errr occured " + e.getMessage());
+		}
+		return tempImage;
+	}
+	private void CheckZombieToRockCollusion(){
+		for(int i = 0; i < this.zombies.size(); i++){
+			for(int j=0; j < this.potatoRocks.size(); j++){
+				if(this.zombies.get(i).getBoundingBox().intersects(this.potatoRocks.get(j).getBoundingBox())){
+					this.zombies.get(i).somethingIsBlockingThePath = true;
+					this.potatoRocks.get(j).live--;
+				}
+			}
+		}
+	}
+	private void removeOldPlants(){
+		for(int i = 0; i < this.shootingPlantDummies.size(); i++){
+			if(this.shootingPlantDummies.get(i).age >=150){
+				this.shootingPlantDummies.remove(i);
+			}
+		}
+	}
+	private void removeDeadPotatoRocks(){
+		for(int i = 0; i < this.potatoRocks.size(); i++){
+			if(this.potatoRocks.get(i).live <= 0){
+				this.potatoRocks.remove(i);
+			}
+		}
+	}
+	@Override
+	public void paintComponent(Graphics g)
+	{
+		Graphics2D g2 = (Graphics2D)g;
+		//this.DreamPlantsUp();
+		if(this.score <= -1)
+			this.isGameOver = true;
+		if(this.isGameOver == false){		
+			CheckZombieToRockCollusion();
+			//generate some zombies 
+			placeRandomZombies();	
+			removeDeadPotatoRocks();
+			this.makeItRainPlants();
+			for (int i = 0; i < world.length; i++){
+				for (int j = 0; j < world[0].length; j++){
+					world[i][j].draw(g2);
+				}
+			}
+			for (int i=0; i < zombies.size(); i++){
+				zombies.get(i).move();
+				zombies.get(i).draw(g);
+			}
+			for(int i=0; i < shootingPlants.size(); i++){
+				shootingPlants.get(i).draw(g);
+			}
+			for(int i=0; i < dragonPlants.size(); i++){
+				dragonPlants.get(i).draw(g);
+			}
+			for(int i=0; i < potatoRocks.size(); i++){
+				potatoRocks.get(i).draw(g);
+			}
+			for(int i=0; i < shootingPlantDummies.size(); i++){
+				shootingPlantDummies.get(i).draw(g);
+			}
+			for(int i=0; i < flowers.size(); i++){
+				flowers.get(i).draw(g);
+			}	
+			Font font = new Font("TimesRoman", Font.BOLD, 50);
+			g2.setFont(font);
+			g2.setColor(Color.WHITE);
+			g2.drawString("SCORE: " + score, 650, 50);
+			repaint();		
+			checkForCollusionsInTheWorld();
+		}
+		else{
+			Font font = new Font("TimesRoman", Font.BOLD, 100);
+			g2.setFont(font);
+			g2.setColor(Color.red);
+			g2.drawString("GAME OVER !! " , 650, 500);
+			repaint();		
+		}
+	}
+	//check if game is running
+	public synchronized void start(){
+		System.out.println("start");
+		if(running == true){
+			return;
+		}
+		running = true;
+		thread = new Thread(this,"thread");
+		thread.start();
+	}
+	//check if game is not running
+	public synchronized void stop(){
+		if(running == false){
+			running = false;
+			try {
+				thread.join();
+			} 
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	@Override
+	public void run() {
+		requestFocus();
+		long lastTime = System.nanoTime();//current time in nano seconds
+		long timer = System.currentTimeMillis();//current time in milli seconds
+		double delta = 0.0;
+		double nanoSecs = 1000000000/60.0;
+		int frames = 0;//number of frame at a time
+		int numOfUpdates = 0;//number of updates
+		while(running){
+			long now = System.nanoTime();//present time
+			delta+=(now - lastTime)/nanoSecs;
+			lastTime =  now;
+			while(delta>=1){
+				numOfUpdates++;
+				delta--;
+			}
+			frames++;
+			if(System.currentTimeMillis()-timer > 1000){
+				timer+=1000;
+				//System.out.println(frames + " frames per seconds "+  numOfUpdates + " updates per seconds");
+				frames = 0;
+				numOfUpdates = 0;
+			}		
+		}
+		stop();
+	}
+}
+  import java.awt.*;
+import java.net.URL;
+
+public class Grass extends Actor
+{
+	private String path;
+	private String name;
+	public Grass(int x, int y) {
+		super(x, y);
+		path = "grass.png";
+		name = "grass";
+	}
+	private Image grass = null;
+	@Override
+	public Image getImage(String path){
+		Image tempImage = null;
+		try{
+			URL imageURL = Grass.class.getResource(path);
+			tempImage = Toolkit.getDefaultToolkit().getImage(imageURL);		
+		}
+		catch(Exception e){
+			System.out.println("an errr occured " + e.getMessage());
+		}
+		return tempImage;
+	}
+	@Override
+	public void draw(Graphics g) {
+		if(grass == null)
+			grass = getImage("grass.png");
+		Graphics2D g2 = (Graphics2D)g;
+		g2.drawImage(grass, getX(), getY(), 100, 100, this);
+		g2.setColor(Color.cyan);
+		this.boundingBox.setBounds(this.getX(), this.getY(), 99, 99);
+	    //g2.drawRect(this.boundingBox.x, this.boundingBox.y, this.boundingBox.width, this.boundingBox.height);
+	}
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path) {
+		this.path = path;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	@Override
+	public void move() {
+		// TODO Auto-generated method stub
+	}
+}
+  import java.awt.*;
+import java.net.URL;
+
+public class House extends Actor 
+{
+	private String path;
+	private String name;	
+	public House(int x, int y) {
+		super(x, y);
+		path = "house.png";
+		name = "house";
+	}	
+	private Image house = null;
+	@Override
+	public Image getImage(String path)
+	{
+		Image tempImage = null;
+		try{
+			URL imageURL = House.class.getResource(path);
+			tempImage = Toolkit.getDefaultToolkit().getImage(imageURL);		
+		}
+		catch(Exception e){
+			System.out.println("an errr occured " + e.getMessage());
+		}
+		return tempImage;
+	}
+	@Override
+	public void draw(Graphics g) 
+	{
+		if(house == null)
+			house = getImage("house.png");
+		Graphics2D g2 = (Graphics2D)g;
+		g2.drawImage(house, getX(), getY(), 100, 100, this);		
+	}
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path) {
+		this.path = path;
+	}
+	public String getName()	{
+		return name;
+	}
+	public void setName(String name){
+		this.name = name;
+	}
+	@Override
+	public void move() {
+		// TODO Auto-generated method stub
+	}
+}
+import javax.swing.*;
+
+public class Main 
+{
+	public static void main(String[] args) 
+	{
+		GamePanel gamePanel = new GamePanel("images/land");
+		JFrame fr = new JFrame();
+		fr.add(gamePanel);
+		fr.pack();
+		fr.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		fr.setSize(1319, 850);
+		fr.setVisible(true);
+		fr.setResizable(true);
+		gamePanel.start();
+	}
+}
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.net.URL;
+import java.util.Random;
+
+public class PotatoRock extends AShooter{
+	private String path;
+	private String name;
+	public PotatoRock(int x, int y){
+		super(x, y);
+		path = "potato.png";
+		name = "potato";
+		live = 60;
+	}
+	public PotatoRock(){
+		Random r = new Random();
+		this.x = r.nextInt(1200);
+		this.y = 0;	
+		path = "potato.png";
+		name = "potato";
+		live = 4;
+	}
+	private Image potato = null;
+	@Override
+	public Image getImage(String path){
+		Image tempImage = null;
+		try{
+			URL imageURL = PotatoRock.class.getResource(path);
+			tempImage = Toolkit.getDefaultToolkit().getImage(imageURL);		
+		}
+		catch(Exception e){
+			System.out.println("an errr occured " + e.getMessage());
+		}
+		return tempImage;
+	}
+	@Override
+	public void draw(Graphics g) {
+		if(potato == null)
+			potato = getImage("potato.png");
+		Graphics2D g2 = (Graphics2D)g;
+		g2.drawImage(potato, getX(), getY(), 100, 100, this);
+		g2.setColor(Color.cyan);
+		this.boundingBox.setBounds(this.getX(), this.getY(), 100, 100);
+	    g2.drawRect(this.boundingBox.x, this.boundingBox.y, this.boundingBox.width, this.boundingBox.height);   
+	    move();
+	    repaint();
+	}
+	@Override
+	public void move() {
+		if(this.pause == false && hasBeenMoved == false){
+			this.y +=1;
+			if(this.y >= 900){
+				this.live = 0;
+			}
+		}
+	}
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path) {
+		this.path = path;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	@Override
+	public boolean shoot() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+}
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Random;
+
+public class ShootingPlant extends AShooter
+{
+	protected int x;
+	protected int y;
+	private String path;
+	private String name;
+	public int startDelay = 50;
+	public ArrayList<Bullet> bullets = new ArrayList<Bullet>();
+	public ShootingPlant(int x, int y){
+		super(x, y);
+		path = "plant2.png";
+		name = "plant";
+		live = 4;
+	}
+	public ShootingPlant(){
+		Random r = new Random();
+		this.x = r.nextInt(1200);
+		this.y = 0;	
+		path = "potato.png";
+		name = "potato";
+		live = 4;
+	}
+	private Image plant = null;
+	@Override
+	public Image getImage(String path){
+		Image tempImage = null;
+		try{
+			URL imageURL = ShootingPlant.class.getResource(path);
+			tempImage = Toolkit.getDefaultToolkit().getImage(imageURL);		
+		}
+		catch(Exception e){
+			System.out.println("an errr occured " + e.getMessage());
+		}
+		return tempImage;
+	}
+	int timeToShoot = 0;
+	@Override
+	public void draw(Graphics g) {
+		if(plant == null)
+			plant = getImage("plant2.png");
+		Graphics2D g2 = (Graphics2D)g;
+		g2.drawImage(plant, getX(), getY(), 100, 100, this);	
+		shoot();
+		move();
+		repaint();
+		for(int i=0; i < this.bullets.size(); i++){
+			bullets.get(i).draw(g2);
+		}
+	}
+	@Override
+	public void move() {
+		this.y +=1;
+		age++;
+		if(this.y >= 700){
+			this.live = 0;
+		}
+	}
+	public int numMoveCalls = 0;
+	public boolean movable = false;
+	@Override
+	public boolean shoot() {
+		if(this.bullets.size() < 3 && numMoveCalls == 210){	
+			bullets.add(new Bullet(this.getX(), this.getY()));
+			numMoveCalls = 0;
+		}
+		for(int i = 0; i < bullets.size(); i++){
+			if(bullets.get(i).getX() >= 1550){
+				bullets.remove(i);
+			}
+		}
+		numMoveCalls++;
+		return false;
+	}
+}
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.net.URL;
+import java.util.Random;
+
+public class ShootingPlantsDummy extends AShooter{
+	private String path;
+	private String name;	
+	public ShootingPlantsDummy(){
+		Random r = new Random();
+		this.x = r.nextInt(1200);
+		this.y = 0;	
+		path = "plant2.png";
+		name = "plant2";
+		live = 4;
+	}
+	public ShootingPlantsDummy(int x, int y) {
+		super(x, y);
+		path = "plant2.png";
+		name = "plant2";	
+		live = 4;
+	}
+	private Image plant2 = null;
+	@Override
+	public Image getImage(String path){
+		Image tempImage = null;
+		try{
+			URL imageURL = Flower.class.getResource(path);
+			tempImage = Toolkit.getDefaultToolkit().getImage(imageURL);		
+		}
+		catch(Exception e){
+			System.out.println("flower errr occured " + e.getMessage());
+		}
+		return tempImage;
+	}
+	@Override
+	public void draw(Graphics g) {
+		if(plant2 == null)
+			plant2 = getImage("plant2.png");
+		Graphics2D g2 = (Graphics2D)g;
+		g2.drawImage(plant2, getX(), getY(), 100, 100, this);	
+		g2.setColor(Color.cyan);
+		this.boundingBox.setBounds(this.getX(), this.getY(), 100, 100);
+	    g2.drawRect(this.boundingBox.x, this.boundingBox.y, this.boundingBox.width, this.boundingBox.height);   
+	    move();
+	    repaint();
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path){
+		this.path = path;
+	}
+	@Override
+	public void move() {
+		if(this.pause == false){
+			this.y +=1;
+			if(this.y >= 700){
+				this.live = 0;
+			}
+		}
+	}
+	@Override
+	public boolean shoot() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+}
+import java.awt.*;
+import java.net.URL;
+
+public class Window extends Actor 
+{
+	private String path;
+	private String name;
+	public Window(int x, int y) {
+		super(x, y);
+		path = "window.png";
+		name = "window";
+	}
+	private Image window = null;
+	@Override
+	public Image getImage(String path){
+		Image tempImage = null;
+		try{
+			URL imageURL = Window.class.getResource(path);
+			tempImage = Toolkit.getDefaultToolkit().getImage(imageURL);		
+		}
+		catch(Exception e){
+			System.out.println("an errr occured " + e.getMessage());
+		}
+		return tempImage;
+	}
+	@Override
+	public void draw(Graphics g) {
+		if(window == null)
+			window = getImage("window.png");
+		Graphics2D g2 = (Graphics2D)g;
+		g2.drawImage(window, getX(), getY(), 100, 100, this);		
+	}
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path) {
+		this.path = path;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	@Override
+	public void move() {
+		// TODO Auto-generated method stub		
+	}
+}
+import java.awt.*;
+import java.net.URL;
+import java.util.ArrayList;
+
+public class Zombies extends Actor
+{
+	private String name = "";
+	private String path = "";	
+	public int startDelay = 50;
+	public int live = 0;
+	public Zombies(int x, int y) {
+		super(x, y);
+		name = "Zombies";
+		path = "zombies.png";
+		this.velocityY = 1;
+		live = 10;
+	}
+	@Override
+	public Image getImage(String path) {
+		Image temImage = null;
+		try{
+			URL imageURL = Zombies.class.getResource(path);
+			temImage = Toolkit.getDefaultToolkit().getImage(imageURL);
+		}
+		catch(Exception e){
+			System.out.println("zombie error occured" + e.getMessage());
+		}
+		return temImage;
+	}
+	@Override
+	public void draw(Graphics g) {
+		 Image zombie = null;
+		if(zombie == null)
+			zombie = getImage("walk.gif");
+		Graphics2D g2 = (Graphics2D)g;
+		g2.drawImage(zombie, y*100, x*100, 100, 100, this);
+		/*g2.setColor(Color.cyan);
+		this.boundingBox.setBounds(this.getY() *100, this.getX()*100, 95, 95);
+	    g2.drawRect(this.boundingBox.x, this.boundingBox.y, this.boundingBox.width, this.boundingBox.height);*/
+		repaint();
+	}
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path) {
+		this.path = path;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	boolean isTimeToMove = false;	
+	boolean movable = true;	
+	int numTimeMovesUpdated = 0;
+	int totalNumMovesToMove = 300;
+	int numTimesMoveFunctionWasCalled = 0;
+	@Override
+	public void move(){
+		if(somethingIsBlockingThePath == false){
+			numTimeMovesUpdated++;
+			numTimesMoveFunctionWasCalled++;
+			if(numTimeMovesUpdated == totalNumMovesToMove && numTimesMoveFunctionWasCalled >= this.startDelay){
+				y = y - velocityY;
+				this.numTimeMovesUpdated = 0;
+			}
+			if(this.y < 0){
+				this.live = 0;
+			}
+		}
+	}	
+	public int getStartDelay() {
+		return startDelay;
+	}
+	public void setStartDelay(int startDelay) {
+		this.startDelay = startDelay;
+	}
+	public boolean isTimeToMove() {
+		return isTimeToMove;
+	}
+	public void setTimeToMove(boolean isTimeToMove) {
+		this.isTimeToMove = isTimeToMove;
+	}
+	public int getNumTimeMovesUpdated() {
+		return numTimeMovesUpdated;
+	}
+	public void setNumTimeMovesUpdated(int numTimeMovesUpdated) {
+		this.numTimeMovesUpdated = numTimeMovesUpdated;
+	}
+	public int getTotalNumMovesToMove() {
+		return totalNumMovesToMove;
+	}
+	public void setTotalNumMovesToMove(int totalNumMovesToMove) {
+		this.totalNumMovesToMove = totalNumMovesToMove;
+	}
+	public Rectangle getBounds(){
+		return new Rectangle(getX(), getY(), 100, 100);		
+	}
+}
